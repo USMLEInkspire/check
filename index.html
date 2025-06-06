@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Registration Check</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    text-align: center;
+  }
+
+  input {
+    padding: 10px;
+    width: 300px;
+    margin-bottom: 10px;
+  }
+
+  button {
+    padding: 10px 20px;
+    margin-left: 10px;
+    cursor: pointer;
+  }
+
+  #qrcode {
+    margin-top: 20px;
+  }
+
+  #result {
+    font-weight: bold;
+    margin-top: 15px;
+  }
+</style>
+
+</head>
+<body>
+  <h2>Check Your Registration</h2>
+  <input type="text" id="input" placeholder="Enter email or phone">
+  <button onclick="checkRegistration()">Check</button>
+  <p id="result"></p>
+  <canvas id="qrcode"></canvas>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbz8OviJdShPKcOx83j_Qy3i2APxLnQO8sJg9rSSXssBbj7AJUMeuu-J1A3nfFUJutmd/exec";
+    const registrationLink = "https://docs.google.com/forms/d/e/1FAIpQLSdfMthihZC_6otQtQMpEAydw0pWqytcqFI5xCjjm1LHTo1lnQ/viewform?usp=sharing&ouid=100769481643847629461";
+
+    function checkRegistration() {
+      const value = document.getElementById("input").value.trim();
+      fetch(`${scriptURL}?email=${value}&phone=${value}`)
+        .then(res => res.text())
+        .then(status => {
+          const result = document.getElementById("result");
+          const qrCanvas = document.getElementById("qrcode");
+          result.textContent = "";
+          qrCanvas.style.display = "none";
+
+          if (status === "registered") {
+            result.textContent = "✅ You are already registered.";
+          } else {
+            result.textContent = "❌ You are not registered. Please register below:";
+            qrCanvas.style.display = "block";
+            QRCode.toCanvas(qrCanvas, registrationLink, error => {
+              if (error) console.error(error);
+            });
+          }
+        });
+    }
+  </script>
+</body>
+</html>
