@@ -1,70 +1,128 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Registration Check</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    text-align: center;
-  }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+      background: #f9f9f9;
+    }
 
-  input {
-    padding: 10px;
-    width: 300px;
-    margin-bottom: 10px;
-  }
+    h2 {
+      margin-bottom: 20px;
+    }
 
-  button {
-    padding: 10px 20px;
-    margin-left: 10px;
-    cursor: pointer;
-  }
+    input {
+      padding: 10px;
+      width: 300px;
+      max-width: 90%;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
 
-  #qrcode {
-    margin-top: 20px;
-  }
+    button {
+      padding: 10px 20px;
+      margin-left: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
 
-  #result {
-    font-weight: bold;
-    margin-top: 15px;
-  }
-</style>
+    button:hover {
+      background-color: #0056b3;
+    }
 
+    #result {
+      font-weight: bold;
+      margin-top: 20px;
+      min-height: 24px;
+    }
+
+    #qrImage {
+      display: none;
+      margin-top: 20px;
+      max-width: 200px;
+    }
+
+    #loader {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #007bff;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
+
   <h2>Check Your Registration</h2>
+
   <input type="text" id="input" placeholder="Enter email or phone">
   <button onclick="checkRegistration()">Check</button>
+
+  <div id="loader" class="spinner"></div>
+
   <p id="result"></p>
-  <canvas id="qrcode"></canvas>
+
+  <img id="qrImage" src="qr.png" alt="Registration QR Code">
 
   <script>
-  function checkRegistration() {
-    const value = document.getElementById("input").value.trim();
-    const script = document.createElement("script");
-    const url = `https://script.google.com/macros/s/AKfycbz8OviJdShPKcOx83j_Qy3i2APxLnQO8sJg9rSSXssBbj7AJUMeuu-J1A3nfFUJutmd/exec?callback=handleResponse&email=${value}&phone=${value}`;
-    script.src = url;
-    document.body.appendChild(script);
-  }
+    const scriptURL = "https://script.google.com/macros/s/AKfycbz8OviJdShPKcOx83j_Qy3i2APxLnQO8sJg9rSSXssBbj7AJUMeuu-J1A3nfFUJutmd/exec";
 
-  function handleResponse(response) {
-    const result = document.getElementById("result");
-    const qrCanvas = document.getElementById("qrcode");
-    qrCanvas.style.display = "none";
+    function checkRegistration() {
+      const value = document.getElementById("input").value.trim();
+      const loader = document.getElementById("loader");
+      const result = document.getElementById("result");
+      const qrImage = document.getElementById("qrImage");
 
-    if (response.status === "registered") {
-      result.textContent = "✅ You are already registered.";
-    } else {
-      result.textContent = "❌ You are not registered. Please register below:";
-      qrCanvas.style.display = "block";
-      QRCode.toCanvas(qrCanvas, registrationLink, function (error) {
-        if (error) console.error(error);
-      });
+      result.textContent = "";
+      qrImage.style.display = "none";
+      loader.style.display = "block";
+
+      // Create a JSONP script
+      const script = document.createElement("script");
+      script.src = `${scriptURL}?callback=handleResponse&email=${value}&phone=${value}`;
+      script.onerror = () => {
+        loader.style.display = "none";
+        result.textContent = "Error fetching data.";
+      };
+      document.body.appendChild(script);
     }
-  }
-</script>
+
+    function handleResponse(response) {
+      const result = document.getElementById("result");
+      const loader = document.getElementById("loader");
+      const qrImage = document.getElementById("qrImage");
+
+      loader.style.display = "none";
+
+      if (response.status === "registered") {
+        result.textContent = "You are already registered.";
+        qrImage.style.display = "none";
+      } else {
+        result.textContent = "You are not registered. Please scan the QR below to register.";
+        qrImage.style.display = "block";
+      }
+    }
+  </script>
 
 </body>
 </html>
