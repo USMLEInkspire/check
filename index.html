@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Registration Check</title>
+  <title>Registration & Giveaway</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,7 +11,7 @@
       background: #f9f9f9;
     }
 
-    h2 {
+    h2, h3 {
       margin-bottom: 20px;
     }
 
@@ -24,7 +24,7 @@
       border-radius: 6px;
     }
 
-    button {
+    button, input[type="submit"] {
       padding: 10px 20px;
       margin-left: 10px;
       background-color: #007bff;
@@ -34,25 +34,13 @@
       cursor: pointer;
     }
 
-    button:hover {
+    button:hover, input[type="submit"]:hover {
       background-color: #0056b3;
-    }
-
-    #result {
-      font-weight: bold;
-      margin-top: 20px;
-      min-height: 24px;
-    }
-
-    #qrImage {
-      display: none;
-      margin-top: 20px;
-      max-width: 200px;
     }
 
     #loader {
       display: none;
-      margin-top: 20px;
+      margin: 20px auto;
     }
 
     .spinner {
@@ -69,6 +57,18 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    #result, #giveawayResult {
+      font-weight: bold;
+      margin-top: 20px;
+      min-height: 24px;
+    }
+
+    #qrImage {
+      display: none;
+      margin-top: 20px;
+      max-width: 200px;
+    }
   </style>
 </head>
 <body>
@@ -81,48 +81,59 @@
   <div id="loader" class="spinner"></div>
 
   <p id="result"></p>
+  <img id="qrImage" src="qr.png" alt="QR Code">
 
-  <img id="qrImage" src="qr.png" alt="Registration QR Code">
+  <div id="giveawaySection">
+    <h3>Enter Your Name for Giveaway</h3>
+    <form id="giveawayForm" action="https://script.google.com/macros/s/AKfycbyDxnHwyqPwaJEb_9k5pUKkz-9z9Xeel1OwPuHIvcsIniy45hQJM0s4G4srFVVf0Ut08g/exec" method="POST" target="hiddenFrame" onsubmit="return handleSubmit();">
+      <input type="text" name="name" id="nameInput" placeholder="Enter your name" required>
+      <input type="submit" value="Submit Name">
+    </form>
+    <iframe name="hiddenFrame" style="display:none;" onload="onFormSubmitted()"></iframe>
+    <p id="giveawayResult"></p>
+  </div>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbz8OviJdShPKcOx83j_Qy3i2APxLnQO8sJg9rSSXssBbj7AJUMeuu-J1A3nfFUJutmd/exec";
+    const checkScriptURL = "https://script.google.com/macros/s/AKfycbz8OviJdShPKcOx83j_Qy3i2APxLnQO8sJg9rSSXssBbj7AJUMeuu-J1A3nfFUJutmd/exec"; // <-- Replace
+    const loader = document.getElementById("loader");
+    const result = document.getElementById("result");
+    const qrImage = document.getElementById("qrImage");
 
     function checkRegistration() {
       const value = document.getElementById("input").value.trim();
-      const loader = document.getElementById("loader");
-      const result = document.getElementById("result");
-      const qrImage = document.getElementById("qrImage");
-
       result.textContent = "";
       qrImage.style.display = "none";
       loader.style.display = "block";
 
       const script = document.createElement("script");
-      script.src = `${scriptURL}?callback=handleResponse&email=${value}&phone=${value}`;
+      script.src = `${checkScriptURL}?callback=handleResponse&email=${value}&phone=${value}`;
       script.onerror = () => {
         loader.style.display = "none";
-        result.textContent = "Error fetching data.";
+        result.textContent = "❌ Error checking registration.";
       };
       document.body.appendChild(script);
     }
 
     function handleResponse(response) {
-      const result = document.getElementById("result");
-      const loader = document.getElementById("loader");
-      const qrImage = document.getElementById("qrImage");
-
       loader.style.display = "none";
-
       if (response.status === "registered") {
-        result.textContent = "You are already registered.";
-        qrImage.style.display = "none";
+        result.textContent = "✅ You are registered.";
       } else {
-        result.textContent = "You are not registered. Please scan the QR below to register.";
+        result.textContent = "❌ You are not registered. Please scan the QR code below.";
         qrImage.style.display = "block";
       }
     }
 
-    // Enable Enter key to submit
+    function handleSubmit() {
+      document.getElementById("giveawayResult").textContent = "Submitting...";
+      return true;
+    }
+
+    function onFormSubmitted() {
+      document.getElementById("giveawayResult").textContent = "✅ Name submitted successfully!";
+      document.getElementById("nameInput").value = "";
+    }
+
     document.getElementById("input").addEventListener("keydown", function(event) {
       if (event.key === "Enter") {
         event.preventDefault();
